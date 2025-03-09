@@ -1,40 +1,34 @@
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useState, useRef } from "react";
 import axios from "axios";
-import {
-  Box,
-  Button,
-  Select,
-  MenuItem,
-  FormControl,
-  InputLabel,
-} from "@mui/material";
-
 import Navbar from "./Navbar";
 import TableComponent from "./TableComponent";
 import NewContact from "./NewContact";
-import { toast, ToastContainer } from "react-toastify";
-import "react-toastify/dist/ReactToastify.css";
 import SearchBar from "./SearchBar";
 import Loader from "./Loader";
+import { useToast } from "./Toast";
+import EditDetailsPopUp from "./EditDetailsPopUp";
 
 export default function ContactsPage() {
   const [loading, setLoading] = useState(false);
   const [contactsList, setContactsList] = useState([]);
   const [searchContacts, setSearchContacts] = useState([]);
   const [openNewContact, setOpenNewContact] = useState(false);
-  const [sortBy, setSortBy] = useState(""); // State to handle sorting
+  const [sortBy, setSortBy] = useState("");
+  const toastContainerRef = useRef(null);
+  const { ToastWrapper, success, error } = useToast();
+  const [editContact, setEditContact] = useState(null);
+  const [isEditOpen, setIsEditOpen] = useState(false);
 
   const fetchContacts = async () => {
     try {
       setLoading(true);
-      const res = await axios.get(
-        "https://nxtwave-contact-management-backend.onrender.com/contacts"
-      );
+      const res = await axios.get("http://localhost:5000/contacts");
       setContactsList(res?.data?.contacts);
       setSearchContacts(res?.data?.contacts);
       setLoading(false);
     } catch (err) {
       setLoading(false);
+      error("Failed to fetch contacts");
       console.log(err);
     }
   };
@@ -48,53 +42,57 @@ export default function ContactsPage() {
 
   const handleSaveNewContact = async (newContact) => {
     try {
-      const res = await axios.post(
-        "https://nxtwave-contact-management-backend.onrender.com/contacts",
-        {
-          ...newContact,
-        }
-      );
+      const res = await axios.post("http://localhost:5000/contacts", {
+        ...newContact,
+      });
       console.log(res.data);
       fetchContacts();
-      toast.success("Contact Added successfully!");
+      success("Contact added successfully!");
+      handleCloseNewContact();
     } catch (err) {
       setLoading(false);
-      toast.error("Failed to Add Contact!");
+      handleCloseNewContact();
+      error(err?.response?.data || "Failed to add contact");
       console.log(err);
     }
   };
 
+  const handleEditClick = (contact) => {
+    setEditContact(contact);
+    setIsEditOpen(true);
+  };
+
+  const handleCloseEdit = () => {
+    setIsEditOpen(false);
+    setEditContact(null);
+  };
+
   const handleEdit = async (id, details) => {
     try {
-      const res = await axios.put(
-        `https://nxtwave-contact-management-backend.onrender.com/contacts/${id}`,
-        {
-          ...details,
-        }
-      );
-      fetchContacts();
-      toast.success("Contact Edited successfully");
-      console.log(res);
+      const res = await axios.put(`http://localhost:5000/contacts/${id}`, {
+        ...details,
+      });
+      if (res.status === 200) {
+        success("Contact edited successfully");
+        fetchContacts();
+        handleCloseEdit();
+      }
     } catch (err) {
-      setLoading(false);
-      toast.error("Failed to Edit Contact");
+      handleCloseEdit();
+      error("Failed to edit contact");
       console.log(err);
     }
   };
 
   const handleDelete = async (id) => {
     try {
-      const res = await axios.delete(
-        `https://nxtwave-contact-management-backend.onrender.com/contacts/${id}`
-      );
-      console.log(res);
-      toast.success("Contact Deleted successfully");
+      const res = await axios.delete(`http://localhost:5000/contacts/${id}`);
       if (res.status === 200) {
+        success("Contact deleted successfully");
         fetchContacts();
       }
     } catch (err) {
-      setLoading(false);
-      toast.error("Failed to Delete Contact");
+      error("Failed to delete contact");
       console.log(err);
     }
   };
@@ -131,55 +129,51 @@ export default function ContactsPage() {
   }
 
   return (
-    <Box sx={{ width: "97%", overflow: "hidden", padding: 2 }}>
+    <div className="w-full min-h-screen bg-gray-50 dark:bg-gray-900 transition-colors duration-200">
       <Navbar />
-      <ToastContainer position="top-right" autoClose={1000} hideProgressBar />
-      <Box
-        sx={{
-          display: "flex",
-          justifyContent: "space-between",
-          alignItems: "center",
-          marginBottom: 2,
-          marginTop: "30px",
-          paddingLeft: "40px",
-          boxSizing: "border-box",
-        }}
-      >
-        <Button
-          variant="contained"
-          color="primary"
-          onClick={handleOpenNewContact}
-        >
-          New Contact
-        </Button>
-        <Box sx={{ display: "flex", alignItems: "center", gap: 2 }}>
-          <FormControl variant="outlined" size="small" sx={{ width: "200px" }}>
-            <InputLabel id="sort-by-label">Sort By</InputLabel>
-            <Select
-              labelId="sort-by-label"
+      <ToastWrapper />
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+        <div className="flex flex-col sm:flex-row justify-between items-center gap-4 mb-8">
+          <button
+            onClick={handleOpenNewContact}
+            className="w-full sm:w-auto px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 dark:bg-blue-500 dark:hover:bg-blue-600 transition-colors"
+          >
+            New Contact
+          </button>
+          <div className="flex flex-col sm:flex-row items-center gap-4 w-full sm:w-auto">
+            <select
               value={sortBy}
               onChange={handleSortChange}
-              label="Sort By"
+              className="w-full sm:w-48 px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100"
             >
-              <MenuItem value="">None</MenuItem>
-              <MenuItem value="name">Name</MenuItem>
-              <MenuItem value="mobileNumber">Mobile Number</MenuItem>
-            </Select>
-          </FormControl>
-          <SearchBar onSearch={handleSearchContacts} />
-        </Box>
-      </Box>
-      <NewContact
-        open={openNewContact}
-        handleClose={handleCloseNewContact}
-        handleSave={handleSaveNewContact}
-      />
-      <TableComponent
-        contactsList={searchContacts}
-        fetchContacts={fetchContacts}
-        handleEdit={handleEdit}
-        handleDelete={handleDelete}
-      />
-    </Box>
+              <option value="">Sort By</option>
+              <option value="name">Name</option>
+              <option value="mobileNumber">Mobile Number</option>
+            </select>
+            <div className="w-full sm:w-auto">
+              <SearchBar onSearch={handleSearchContacts} />
+            </div>
+          </div>
+        </div>
+
+        <NewContact
+          open={openNewContact}
+          handleClose={handleCloseNewContact}
+          handleSave={handleSaveNewContact}
+        />
+        <TableComponent
+          contactsList={searchContacts}
+          handleEdit={handleEditClick}
+          handleDelete={handleDelete}
+          onAddNew={handleOpenNewContact}
+        />
+        <EditDetailsPopUp
+          open={isEditOpen}
+          handleClose={handleCloseEdit}
+          contact={editContact}
+          handleSave={handleEdit}
+        />
+      </div>
+    </div>
   );
 }
