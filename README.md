@@ -27,8 +27,8 @@ Before starting, ensure you have the following installed:
 ### **Step 2: Clone the Repository**
 
  ```bash
-git clone https://github.com/Rakesh3117/contact-management-app.git
-cd contact-management-app
+git clone https://github.com/Rakesh3117/nxtwave-contact-management-app-fullstack
+cd contact-app
 ```
 ## **Project Setup and Workflow**
 
