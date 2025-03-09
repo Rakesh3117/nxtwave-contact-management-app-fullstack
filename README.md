@@ -37,7 +37,12 @@ cd contact-app
 Run the following command at the project root to install dependencies for both frontend and backend:
 
 ```bash
-npm run install-all
+cd Backend
+npm install
+npm start
+
+cd contact-app
+npm intsall
 npm start
 ```
 
