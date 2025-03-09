@@ -20,11 +20,9 @@ const Contacts = mongoose.Schema({
   },
   company: {
     type: String,
-    required: true,
   },
   jobTitle: {
     type: String,
-    required: true,
   },
   createdAt: {
     type: Date,

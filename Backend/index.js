@@ -44,8 +44,8 @@ app.post("/contacts", async (req, res) => {
       lastName,
       email,
       mobileNumber,
-      company,
-      jobTitle,
+      company: company || "--",
+      jobTitle: jobTitle || "--",
     });
 
     await newContact.save();
