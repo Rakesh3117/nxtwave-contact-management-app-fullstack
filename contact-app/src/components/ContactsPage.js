@@ -22,7 +22,9 @@ export default function ContactsPage() {
   const fetchContacts = async () => {
     try {
       setLoading(true);
-      const res = await axios.get("http://localhost:5000/contacts");
+      const res = await axios.get(
+        "https://nxtwave-contact-management-app-fullstack.onrender.com/contacts"
+      );
       setContactsList(res?.data?.contacts);
       setSearchContacts(res?.data?.contacts);
       setLoading(false);
@@ -42,9 +44,12 @@ export default function ContactsPage() {
 
   const handleSaveNewContact = async (newContact) => {
     try {
-      const res = await axios.post("http://localhost:5000/contacts", {
-        ...newContact,
-      });
+      const res = await axios.post(
+        "https://nxtwave-contact-management-app-fullstack.onrender.com/contacts",
+        {
+          ...newContact,
+        }
+      );
       console.log(res.data);
       fetchContacts();
       success("Contact added successfully!");
@@ -69,9 +74,12 @@ export default function ContactsPage() {
 
   const handleEdit = async (id, details) => {
     try {
-      const res = await axios.put(`http://localhost:5000/contacts/${id}`, {
-        ...details,
-      });
+      const res = await axios.put(
+        `https://nxtwave-contact-management-app-fullstack.onrender.com/contacts/${id}`,
+        {
+          ...details,
+        }
+      );
       if (res.status === 200) {
         success("Contact edited successfully");
         fetchContacts();
@@ -86,7 +94,9 @@ export default function ContactsPage() {
 
   const handleDelete = async (id) => {
     try {
-      const res = await axios.delete(`http://localhost:5000/contacts/${id}`);
+      const res = await axios.delete(
+        `https://nxtwave-contact-management-app-fullstack.onrender.com/contacts/${id}`
+      );
       if (res.status === 200) {
         success("Contact deleted successfully");
         fetchContacts();
